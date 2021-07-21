@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <script>
+      function generate_token_data() {
+        let x = "0123456789abcdef", hash = '0x'
+        for (let i = 64; i > 0; --i) {
+          hash += x[Math.floor(Math.random()*x.length)]
+        }          
+        data = {"hash":hash, "tokenId":1000000}
+        return data
+      }
+      let tokenData = generate_token_data()
+    </script>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style type="text/css">
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      canvas {
+        padding: 0;
+        margin: auto;
+        display: block;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.js"></script>
+  </head>
+  <body>
+    <div>
+      <script src="patchwork.js"></script>
+    </div>
+  </body>
+</html>
