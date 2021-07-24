@@ -19,9 +19,9 @@ const scale = (x) => x * UNIT
 
 // Shared palettes
 const PALETTES = [
-  ['#fff', '#000'],
-  ['#32936f', '#395e66', '#387d7a', '#26a96c', '#2bc016'],
-  ['#f02d3a', '#273043', '#9197ae', '#eff6ee', '#dd0426']
+  ["#fff", "#000"],
+  ["#32936f", "#395e66", "#387d7a", "#26a96c", "#2bc016"],
+  ["#f02d3a", "#273043", "#9197ae", "#eff6ee", "#dd0426"]
 ]
 
 // Shared hash
@@ -38,10 +38,10 @@ class Random {
     return Math.random()
   }
   random_num(a, b) {
-    return a+(b-a)*this.random_dec()
+    return a + (b - a) * this.random_dec()
   }
   random_int(a, b) {
-    return Math.floor(this.random_num(a, b+1))
+    return Math.floor(this.random_num(a, b + 1))
   }
   random_element(array) {
     return array[this.random_int(0, array.length - 1)]
@@ -64,21 +64,17 @@ setup = () => {
   frameRate(30)
 
   // initialize patches
-  let row = 0;
-  let column = 0;
+  let row = 0
+  let column = 0
 
   for (let patch of patches) {
     if (!patchGrid[row]) {
       patchGrid[row] = []
     }
 
-    patchGrid[row].push(patch(
-      patchWidth,
-      patchHeight,
-      PAL,
-      new Random(seed),
-      [row, column]
-    ));
+    patchGrid[row].push(
+      patch(patchWidth, patchHeight, PAL, new Random(seed), [row, column])
+    )
 
     column++
     if (column === columns) {
@@ -96,11 +92,11 @@ const drawGrid = () => {
   strokeWeight(scale(5))
 
   for (let column = 0; column <= columns; column++) {
-    line(patchWidth * column, 0, patchWidth * column, height);
+    line(patchWidth * column, 0, patchWidth * column, height)
   }
 
   for (let row = 0; row <= rows; row++) {
-    line(0, patchHeight * row, width, patchHeight * row);
+    line(0, patchHeight * row, width, patchHeight * row)
   }
 }
 
