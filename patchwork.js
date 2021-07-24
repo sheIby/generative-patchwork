@@ -1,5 +1,31 @@
+// Using const to avoid accidental override by patches
+
+// patches should be imported from external file
+const patches = [patch01, patch02, patch03, patch01]
+const columns = Math.round(Math.sqrt(patches.length))
+let rows = Math.round(patches.length / columns)
+if (columns * rows < patches.length) rows++
+
+// Standard scale
+const RESOLUTION = 2048
+// Detect dimensions
+const DIM = Math.min(window.innerWidth, window.innerHeight)
+const UNIT = DIM / RESOLUTION
+const patchWidth = DIM / columns
+const patchHeight = DIM / rows
+
+// Global scaler based on resolution
+const scale = (x) => x * UNIT
+
+// Shared palettes
+const PALETTES = [
+  ['#fff', '#000'],
+  ['#32936f', '#395e66', '#387d7a', '#26a96c', '#2bc016'],
+  ['#f02d3a', '#273043', '#9197ae', '#eff6ee', '#dd0426']
+]
+
 // Shared hash
-let hash = tokenData.hash
+let { hash } = tokenData
 let seed = parseInt(hash.slice(0, 16), 16)
 
 // Shared PRNG class
@@ -17,124 +43,82 @@ class Random {
   random_int(a, b) {
     return Math.floor(this.random_num(a, b+1))
   }
-}
-
-// Shared palettes
-var PALETTES = [
-  ["#FAF5F5", "#E3392D"],
-  ["#40C79A", "#4640C7"]
-]
-
-// Detect dimensions
-var DIM = Math.min(window.innerWidth, window.innerHeight)
-
-// Global scaler based on a default of 1000px
-function n(x) {
-  return x*DIM/1000
+  random_element(array) {
+    return array[this.random_int(0, array.length - 1)]
+  }
+  // Add gaussian?
 }
 
 // Global RNG
-var RandomShared = new Random(seed)
+const RandomShared = new Random(seed)
 
 // Global variables
-var PAL = PALETTES[RandomShared.random_int(0, PALETTES.length-1)]
-var BG = "#000000"
+const PAL = RandomShared.random_element(PALETTES)
+const BG = "#000000"
 
-// Compute and draw functions for each patch
-PATCH_01_COMPUTE = function(x1, y1, x2, y2) {
+let patchGrid = []
 
-  // Local RNG
-  let RandomPatch = new Random(seed)
-
-  // Local dimensions
-  let p_dimx = x2-x1
-  let p_dimy = y2-y1
-  let p_dim = Math.min(p_dimx, p_dimy)
-
-  // Local RNG determines pre-computed shapes
-  let objects = []
-
-  // Simple drawing of random squares
-  let d = 10
-  let step = p_dim / d
-  for (let i=0; i < d; i++) {
-    for (let j=0; j < d; j++) {
-      
-      // Locally random selection from the global palette
-      let fill_color = PAL[RandomPatch.random_int(0, PAL.length-1)]
-
-      // Scale stroke weight with the global scaler
-      let stroke_weight = n(RandomPatch.random_num(0,3))
-
-      objects.push({
-        "x1" : x1 + (i * step),
-        "y1" : y1 + (j * step),
-        "x2" : x1 + ((i+1) * step),
-        "y2" : y1 + ((j+1) * step),
-        "fill" : fill_color,
-        "stroke_weight" : stroke_weight
-      })
-    }
-  }
-  return objects
-}
-
-PATCH_01_DRAW = function(objects) {
-  for (let obj of objects) {    
-    // Access global background
-    stroke(BG)
-    // Access global frame count
-    strokeWeight(obj.stroke_weight * (frameCount % 30) / 20)
-    fill(obj.fill)
-    beginShape()
-    vertex(obj.x1, obj.y1)
-    vertex(obj.x2, obj.y1)
-    vertex(obj.x2, obj.y2)
-    vertex(obj.x1, obj.y2)
-    endShape(CLOSE)
-  }
-}
-
-// Set the coordinates of this patch to grid (1, 1) 
-// scaling to a 1000x1000 canvas
-let PATCH_01_OBJ = PATCH_01_COMPUTE(n(250), n(250), n(500), n(500))
-
-// Set the coordinates of this patch to grid (2, 3) 
-// scaling to a 1000x1000 canvas
-let PATCH_04_OBJ = PATCH_01_COMPUTE(n(500), n(750), n(750), n(1000))
-
-function setup() {
+setup = () => {
   createCanvas(DIM, DIM)
   background(BG)
-  frameRate(10)
-}
+  frameRate(30)
 
-function draw() {
-  background(BG)
-  // Computing section coordinates
-  // Ignore this
-  let sno = 4 // Number of sections
-  let spx = DIM / sno // Pixel size of section
-  for (let x=0; x < sno; x++) {
-    for (let y=0; y < sno; y++) {
-      let x1 = x * spx
-      let x2 = x1 + spx
-      let y1 = y * spx
-      let y2 = y1 + spx
-      noFill()
-      stroke(255)
-      strokeWeight(n(5))
-      beginShape()
-      vertex(x1, y1)
-      vertex(x2, y1)
-      vertex(x2, y2)
-      vertex(x1, y2)
-      endShape(CLOSE)
+  // initialize patches
+  let row = 0;
+  let column = 0;
+
+  for (let patch of patches) {
+    if (!patchGrid[row]) {
+      patchGrid[row] = []
+    }
+
+    patchGrid[row].push(patch(
+      patchWidth,
+      patchHeight,
+      PAL,
+      new Random(seed),
+      [row, column]
+    ));
+
+    column++
+    if (column === columns) {
+      column = 0
+      row++
     }
   }
-  // End ignore
+}
 
-  // Draw pre-computed objects for each patch
-  PATCH_01_DRAW(PATCH_01_OBJ)
-  PATCH_01_DRAW(PATCH_04_OBJ)
+// To be removed
+const drawGrid = () => {
+  // Computing section coordinates
+  noFill()
+  stroke(0, 255, 0, 150)
+  strokeWeight(scale(5))
+
+  for (let column = 0; column <= columns; column++) {
+    line(patchWidth * column, 0, patchWidth * column, height);
+  }
+
+  for (let row = 0; row <= rows; row++) {
+    line(0, patchHeight * row, width, patchHeight * row);
+  }
+}
+
+draw = () => {
+  // draw each patch in the grid
+  for (let row = 0; row < patchGrid.length; row++) {
+    for (let column = 0; column < patchGrid[row].length; column++) {
+      // isolate drawing styles & transformations
+      push()
+      // move drawing area to patch
+      translate(column * patchWidth, row * patchHeight)
+
+      // draw patch
+      patchGrid[row][column]()
+      pop()
+    }
+  }
+
+  // To be removed
+  drawGrid()
 }
